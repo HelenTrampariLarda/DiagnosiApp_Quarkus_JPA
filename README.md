@@ -1,1 +1,1 @@
-# DiagnosiAppJPA
+# DiagnosiAppQuarkus
