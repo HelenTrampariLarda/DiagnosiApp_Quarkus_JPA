@@ -1,5 +1,5 @@
 # team2-ft-2022-23
-Project repository for Team 2
+Project repository for Team 2 - Quarkus
 
 # **Υπηρεσία ηλεκτρονικής συνταγογράφησης**
 
