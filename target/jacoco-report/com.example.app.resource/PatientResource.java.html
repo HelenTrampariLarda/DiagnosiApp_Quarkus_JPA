@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PatientResource.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">quarkus-application</a> &gt; <a href="index.source.html" class="el_package">com.example.app.resource</a> &gt; <span class="el_source">PatientResource.java</span></div><h1>PatientResource.java</h1><pre class="source lang-java linenums">package com.example.app.resource;
+
+
+import com.example.app.EopyyException;
+import com.example.app.domain.Doctor;
+import com.example.app.domain.Drug;
+import com.example.app.domain.Patient;
+import com.example.app.domain.Pharmacist;
+import com.example.app.persistence.DrugRepository;
+import com.example.app.persistence.PatientRepository;
+import com.example.app.representation.*;
+
+import javax.enterprise.context.RequestScoped;
+import javax.inject.Inject;
+import javax.transaction.Transactional;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
+
+import java.net.URI;
+import java.util.List;
+
+import static com.example.app.resource.Uri.DRUG;
+import static com.example.app.resource.Uri.PATIENT;
+
+@Path(PATIENT)
+@RequestScoped
+<span class="fc" id="L30">public class PatientResource {</span>
+
+    @Context
+    UriInfo uriInfo;
+
+    @Inject
+    PatientRepository patientRepository;
+
+    @Inject
+    PatientsMapper patientMapper;
+
+    @GET
+    @Path(&quot;/{patientId}&quot;)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
+    public Response findById(@PathParam(&quot;patientId&quot;) Integer patientId) {
+<span class="fc" id="L46">        Patient pat = patientRepository.findById(patientId);</span>
+<span class="fc bfc" id="L47" title="All 2 branches covered.">        if (pat == null) {</span>
+<span class="fc" id="L48">            return Response.status(Response.Status.NOT_FOUND).build();</span>
+        }
+
+<span class="fc" id="L51">        return Response.ok().entity(patientMapper.toRepresentation(pat)).build();</span>
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
+    public List&lt;PatientRepresentation&gt; findByAmka(@QueryParam(&quot;patientAmka&quot;) String patientAmka) {
+<span class="fc" id="L58">        return patientMapper.toRepresentationList(patientRepository.search(patientAmka));</span>
+    }
+
+    @GET
+    @Path(&quot;/all&quot;)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
+    public List&lt;PatientRepresentation&gt; listAll() {
+<span class="fc" id="L66">        return patientMapper.toRepresentationList(patientRepository.listAll());</span>
+    }
+
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Transactional
+    public Response submitPatient(PatientRepresentation pat){
+
+<span class="fc" id="L74">        Patient entity = patientMapper.toModel(pat);</span>
+
+<span class="fc" id="L76">        List&lt;Patient&gt; p = patientRepository.search(pat.amka);</span>
+
+<span class="fc bfc" id="L78" title="All 2 branches covered.">        if (p.size() == 0) {</span>
+            //patientRepository.getEntityManager().merge(entity);
+<span class="fc" id="L80">            patientRepository.persist(entity);</span>
+        }
+<span class="fc" id="L82">        else {return Response.status(404).build();}</span>
+
+<span class="fc" id="L84">        URI location = uriInfo.getAbsolutePathBuilder()</span>
+<span class="fc" id="L85">                .path(Integer.toString(entity.getId()))</span>
+<span class="fc" id="L86">                .build();</span>
+
+<span class="fc" id="L88">        return Response</span>
+<span class="fc" id="L89">                .created(location)</span>
+<span class="fc" id="L90">                .entity(patientMapper.toRepresentation(entity))</span>
+<span class="fc" id="L91">                .build();</span>
+    }
+
+    @PUT
+    @Path(&quot;/{id}&quot;)
+    @Transactional
+    public Response updatePatient(@PathParam(&quot;id&quot;) Integer id, PatientRepresentation representation) {
+
+
+<span class="pc bpc" id="L100" title="1 of 2 branches missed.">        if (!id.equals(representation.id)) {</span>
+<span class="nc" id="L101">            throw new RuntimeException();</span>
+        }
+
+<span class="fc" id="L104">        Patient updPat = patientMapper.toModel(representation);</span>
+<span class="fc" id="L105">        List&lt;Patient&gt; p = patientRepository.search(representation.amka);</span>
+
+        //Θα ελέγχει ότι ο υπάρχων ασθενής με αυτόν που πάει να μεταβληθεί έχουν το ίδιο AMKA
+<span class="fc" id="L108">        Patient p1 = patientRepository.findById(id);</span>
+<span class="fc" id="L109">        Patient p2 = patientRepository.findById(representation.id);</span>
+
+        //Ελέγχει ότι η τροποποίηση θα πραγματοποιηθεί με το ίδιο AFM και θα είναι μοναδικό για να μην το τροποποιήσει κάποιος
+<span class="pc bpc" id="L112" title="2 of 4 branches missed.">        if (p.size() == 1 &amp;&amp; p1.getAmka()==p2.getAmka()) {</span>
+<span class="fc" id="L113">            patientRepository.getEntityManager().merge(updPat);</span>
+        } else {
+<span class="nc" id="L115">            System.out.println(&quot;CHANGE of AMKA  is not permitted.&quot;);</span>
+<span class="nc" id="L116">            new EopyyException(&quot;CHANGE of AMKA  is not permitted.&quot;);</span>
+        }
+
+<span class="fc" id="L119">        return Response.noContent().build();</span>
+    }
+
+    @DELETE
+    @Path(&quot;{id:[0-9]+}&quot;)
+    @Transactional
+    public Response removePatient(@PathParam(&quot;id&quot;) Integer id){
+<span class="nc" id="L126">        Patient patient = patientRepository.findById(id);</span>
+
+<span class="nc bnc" id="L128" title="All 2 branches missed.">        if (id == null){</span>
+<span class="nc" id="L129">            return Response.status(404).build();</span>
+        }
+<span class="nc" id="L131">        patientRepository.delete(&quot;id&quot;, patient.getId());</span>
+
+<span class="nc" id="L133">        return Response.noContent().build();</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

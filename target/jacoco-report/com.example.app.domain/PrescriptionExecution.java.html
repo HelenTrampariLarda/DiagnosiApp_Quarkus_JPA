@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PrescriptionExecution.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">quarkus-application</a> &gt; <a href="index.source.html" class="el_package">com.example.app.domain</a> &gt; <span class="el_source">PrescriptionExecution.java</span></div><h1>PrescriptionExecution.java</h1><pre class="source lang-java linenums">package com.example.app.domain;
+
+
+import javax.persistence.*;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+@Entity
+@Table(name = &quot;prescriptionExecutions&quot;)
+public class PrescriptionExecution {
+
+
+    @Id
+    @Column(name=&quot;id&quot;)
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Integer id;
+
+
+    @Column(name=&quot;pharmacistAFM&quot;, length=15)
+    private String pharmacistAFM;
+
+    @Column(name=&quot;executionDate&quot;, length=40, nullable=false)
+    private String executionDate;// = SystemDate.now();
+
+    @Column(name=&quot;summaryCost&quot;, length=15)
+    private Double summaryCost;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name=&quot;executionFlag&quot;, length=15)
+    private executionPrescriptionFlag executionFlag;
+
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @JoinColumn(name = &quot;pharmacist_id&quot;)
+    private Pharmacist pharmacist;
+
+    //Σύνδεση με το QuantityExecution
+<span class="fc" id="L40">    @OneToMany(mappedBy = &quot;prescriptionExecution&quot;, cascade = CascadeType.ALL, fetch = FetchType.LAZY)</span>
+    private Set&lt;QuantityExecution&gt; quantityExecutions = new HashSet&lt;QuantityExecution&gt;();
+
+
+    /*Το θέλω για να μπορώ να πάρω τα στοιχεία της συνταγής μεσα από την εκτέλεσή της*/
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = &quot;prescription&quot;)
+    private Prescription prescription;
+
+<span class="fc" id="L49">    public PrescriptionExecution(){</span>
+<span class="fc" id="L50">    }</span>
+
+<span class="fc" id="L52">    public PrescriptionExecution(String pharmacistAFM) {</span>
+<span class="fc" id="L53">        this.pharmacistAFM = pharmacistAFM;</span>
+<span class="fc" id="L54">        this.executionDate = LocalDate.now().toString();</span>
+<span class="fc" id="L55">        this.executionFlag = executionPrescriptionFlag.PENDING;</span>
+<span class="fc" id="L56">    }</span>
+
+    public Integer getId() {
+<span class="fc" id="L59">        return id;</span>
+    }
+
+    public void setId(Integer id) {
+<span class="fc" id="L63">        this.id = id;</span>
+<span class="fc" id="L64">    }</span>
+
+    public String getDoctorAMKA() {
+<span class="nc" id="L67">        return pharmacistAFM;</span>
+    }
+
+    public void setDoctorAMKA(String doctorAMKA) {
+<span class="fc" id="L71">        this.pharmacistAFM = doctorAMKA;</span>
+<span class="fc" id="L72">    }</span>
+
+    public String getPharmacistAFM() {
+<span class="nc" id="L75">        return pharmacistAFM;</span>
+    }
+
+    public void setPharmacistAFM(String pharmacistAFM) {
+<span class="nc" id="L79">        this.pharmacistAFM = pharmacistAFM;</span>
+<span class="nc" id="L80">    }</span>
+
+    public Prescription getPrescription() {
+<span class="nc" id="L83">        return prescription;</span>
+    }
+
+    public String getExecutionDate() {
+<span class="fc" id="L87">        return executionDate;</span>
+    }
+
+    public void setExecutionDate(String executionDate) {
+<span class="fc" id="L91">        this.executionDate = executionDate;</span>
+<span class="fc" id="L92">    }</span>
+
+    public Double getSummaryCost() {
+<span class="fc" id="L95">        return summaryCost;</span>
+    }
+
+    /*Υλοποιείται το συνολικό κόστος με τρόπο τέτοιο ώστε να υπολογίζεται και το κόστος με την έκπτωση
+    * ανάλογα με το αν το φάρμακι είνια προτώτυπο ή γενόσημο*/
+    public double getSummaryCost(List&lt;QuantityExecution&gt; qe ) {
+<span class="fc" id="L101">        summaryCost=0.0;</span>
+<span class="fc bfc" id="L102" title="All 2 branches covered.">        for (QuantityExecution qes : qe){</span>
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">            if(qes.getDrug().getMedicineCategory()==medicineCategory.ORIGINALS){</span>
+<span class="fc" id="L104">                summaryCost = summaryCost + (qes.getQuantityExecutionPieces()*qes.getDrug().getDrugPrice())*0.02;</span>
+            } else {
+<span class="nc" id="L106">                summaryCost = summaryCost + (qes.getQuantityExecutionPieces()*qes.getDrug().getDrugPrice())*0.10;</span>
+            }
+<span class="fc" id="L108">        }</span>
+<span class="fc" id="L109">        return summaryCost;</span>
+    }
+
+    public void setSummaryCost(Double summaryCost) {
+<span class="fc" id="L113">        this.summaryCost = summaryCost;</span>
+<span class="fc" id="L114">    }</span>
+
+    public executionPrescriptionFlag getExecutionFlag() {
+<span class="fc" id="L117">        return executionFlag;</span>
+    }
+
+    public void setExecutionFlag(executionPrescriptionFlag executionFlag) {
+<span class="fc" id="L121">        this.executionFlag = executionFlag;</span>
+<span class="fc" id="L122">    }</span>
+
+    public executionPrescriptionFlag isExecutionFlag() {
+<span class="fc" id="L125">        return executionFlag;</span>
+    }
+
+    /*Κατά την εκτέλεση της συνταγής θα ελέγχεται αν ο φαρμακοποιός έδωσε περισσότερα
+     * από τα φάρμακα που έγραψε ο γιατρός*/
+    public void setExecutionFlag(List&lt;QuantityExecution&gt; q_execution, List&lt;QuantityPrescription&gt; q_prescription) throws DomainException {
+
+<span class="fc" id="L132">        boolean flag = true;</span>
+<span class="fc bfc" id="L133" title="All 2 branches covered.">        if(q_prescription.size()==0){</span>
+<span class="fc" id="L134">            executionFlag = executionPrescriptionFlag.CANCELED;</span>
+<span class="fc" id="L135">            flag = true;</span>
+        } else {
+<span class="fc bfc" id="L137" title="All 2 branches covered.">            for (int i = 0; i &lt; q_prescription.size(); i++) {</span>
+<span class="pc bpc" id="L138" title="1 of 2 branches missed.">                if (q_execution.get(i).getQuantityExecutionPieces() &gt; q_prescription.get(i).getQuantityPrescription()) {</span>
+<span class="nc" id="L139">                    throw new DomainException(&quot;QuantityExecution Pieces is Higher than Doctors QuantityPrescription&quot;);</span>
+<span class="fc bfc" id="L140" title="All 2 branches covered.">                } else if (q_execution.get(i).getQuantityExecutionPieces() &lt; q_prescription.get(i).getQuantityPrescription()) {</span>
+<span class="fc" id="L141">                    flag = false;</span>
+                    //break;
+                } else {
+<span class="pc bpc" id="L144" title="1 of 2 branches missed.">                    if(flag!=false) {</span>
+<span class="fc" id="L145">                        flag = true;</span>
+                    }
+                }//if
+            }//for
+<span class="fc bfc" id="L149" title="All 2 branches covered.">            if (flag) {</span>
+<span class="fc" id="L150">                executionFlag = executionPrescriptionFlag.EXECUTED;</span>
+            } else {
+<span class="fc" id="L152">                executionFlag = executionPrescriptionFlag.PARTIALLY;</span>
+            } //if
+        } //if
+<span class="fc" id="L155">    }</span>
+
+
+    //@ManyToOne Pharmacist
+    public Pharmacist getPharmacist() {
+<span class="fc" id="L160">        return pharmacist;</span>
+    }
+    public void setPharmacist(Pharmacist pharmacist) {
+<span class="fc" id="L163">        this.pharmacist = pharmacist;</span>
+<span class="fc" id="L164">    }</span>
+
+
+    //@OneToMany Getter kai ADD (όχι SETTER διότι είναι Interface
+    public Set&lt;QuantityExecution&gt; getQuantityExecutions() {
+<span class="fc" id="L169">        return quantityExecutions;</span>
+    }
+
+    public void setQuantityExecutions(Set&lt;QuantityExecution&gt; quantityExecutions) {
+<span class="fc" id="L173">        this.quantityExecutions = quantityExecutions;</span>
+<span class="fc" id="L174">    }</span>
+
+    public void setPrescription(Prescription prescription) {
+<span class="nc" id="L177">        this.prescription = prescription;</span>
+<span class="nc" id="L178">    }</span>
+
+
+    public void addQuantityExecution(QuantityExecution quantityExecution) {
+<span class="fc" id="L182">        quantityExecutions.add(quantityExecution);</span>
+<span class="fc" id="L183">    }</span>
+    public void removeQuantityExecution(QuantityExecution quantityExecution) {
+<span class="nc" id="L185">        quantityExecutions.remove(quantityExecution);</span>
+<span class="nc" id="L186">    }</span>
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

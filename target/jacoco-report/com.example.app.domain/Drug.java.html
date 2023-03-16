@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Drug.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">quarkus-application</a> &gt; <a href="index.source.html" class="el_package">com.example.app.domain</a> &gt; <span class="el_source">Drug.java</span></div><h1>Drug.java</h1><pre class="source lang-java linenums">package com.example.app.domain;
+
+import javax.persistence.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+
+@Entity
+@Table(name = &quot;drugs&quot;)
+public class Drug {
+
+        @Id
+        @Column(name=&quot;id&quot;)
+        @GeneratedValue(strategy = GenerationType.AUTO)
+        private Integer id;
+
+        @Column(name=&quot;drugName&quot;, length=200, nullable=false)
+        private String drugName;
+
+        @Column(name=&quot;drugPrice&quot;, length=100, nullable=false)
+        private double drugPrice;
+
+        @Enumerated(EnumType.STRING)
+        @Column(name = &quot;MedicineCategory&quot;)
+        private medicineCategory medicineCategory;
+
+        /*Εδώ θα προσθέσω το Foreign Key
+        * Ότι δηλαδή κάθε φάρματο θα έχει μέσα στον πίνακά του το ID του ActiveSubstance*/
+
+
+
+        /*Του λέω επιπλέον πως θα λέγετια το id με το οποίο θα συνδεθεί μέσα στο
+        * πίνακα του DRUG
+        * και Του λέω ότι θα είναι nullable αφού κάθε φράμακο έχει δραστική ουσία*/
+        @ManyToOne(fetch = FetchType.LAZY)
+        @JoinColumn(name = &quot;activeSubstance_id&quot;, nullable = false)
+        private ActiveSubstance activeSubstance;
+
+<span class="fc" id="L40">        @OneToMany(mappedBy = &quot;drug&quot;, fetch = FetchType.LAZY)</span>
+        private Set&lt;QuantityPrescription&gt; quantityPrescriptions = new HashSet&lt;QuantityPrescription&gt;();
+
+<span class="fc" id="L43">        @OneToMany(mappedBy = &quot;drug&quot;, fetch = FetchType.LAZY)</span>
+        private Set&lt;QuantityExecution&gt; quantityExecutions = new HashSet&lt;QuantityExecution&gt;();
+
+
+<span class="fc" id="L47">        public Drug(String drugName, Double drugPrice, medicineCategory medicineCategory){</span>
+<span class="fc" id="L48">            this.drugName = drugName;</span>
+<span class="fc" id="L49">            this.drugPrice = drugPrice;</span>
+<span class="fc" id="L50">            this.medicineCategory = medicineCategory;</span>
+<span class="fc" id="L51">        }</span>
+<span class="fc" id="L52">        public Drug(){</span>
+<span class="fc" id="L53">        }</span>
+
+        public Integer getId() {
+<span class="fc" id="L56">                return id;</span>
+        }
+
+
+<span class="fc" id="L60">        public void setId(Integer id){this.id=id;}</span>
+
+
+        public String getDrugName() {
+<span class="fc" id="L64">                return drugName;</span>
+        }
+
+        public void setDrugName(String drugName) {
+<span class="fc" id="L68">                this.drugName = drugName;</span>
+<span class="fc" id="L69">        }</span>
+
+        public double getDrugPrice() {
+<span class="fc" id="L72">                return drugPrice;</span>
+        }
+
+        public void setDrugPrice(double drugPrice) {
+<span class="fc" id="L76">                this.drugPrice = drugPrice;</span>
+<span class="fc" id="L77">        }</span>
+
+        public com.example.app.domain.medicineCategory getMedicineCategory() {
+<span class="fc" id="L80">                return medicineCategory;</span>
+        }
+
+        public void setMedicineCategory(com.example.app.domain.medicineCategory medicineCategory) {
+<span class="fc" id="L84">                this.medicineCategory = medicineCategory;</span>
+<span class="fc" id="L85">        }</span>
+
+        public ActiveSubstance getActiveSubstance() {
+<span class="fc" id="L88">                return activeSubstance;</span>
+        }
+
+        public void setActiveSubstance(ActiveSubstance activeSubstance) {
+<span class="fc" id="L92">                this.activeSubstance = activeSubstance;</span>
+<span class="fc" id="L93">        }</span>
+
+        /*Εδώ θέλω να διαργάφονται αυτόματα τα QuantityPrescriptions
+        * κάθε φορά που διαγράφο ένα φάρμακο μέσα από το prescription
+        * Έτσι όταν μία συνταγή καλέσει τα φάρμακα τότε το φάρμακο
+        * που είναι ενωμένο με ManyToOne με  το QuantityPrescriptions
+        * θα επιστρέψει εκέινο το QuantityPrescription που εντιστοιχεί
+        * στο ID του DRUG.
+        * Δεν υπάρχει δεύτερο QuantityPrescription με το ίδιο ID μέσα
+        * στην ίδια συνταγή αλλιώς πρόκειται για διπλοεγγραφή και
+        * καλά κάνει και το διαγράφει*/
+
+        public Set&lt;QuantityPrescription&gt; getQuantityPrescriptions() {
+<span class="nc" id="L106">                return quantityPrescriptions;</span>
+        }
+
+        public void addQuantityPrescription(QuantityPrescription quantityPrescription) {
+<span class="nc bnc" id="L110" title="All 2 branches missed.">                if(quantityPrescription != null) {</span>
+<span class="nc" id="L111">                        quantityPrescriptions.add(quantityPrescription);</span>
+                }
+<span class="nc" id="L113">        }</span>
+        /*Καλείται από την RemoveDrug της Prescription για να πάρει τα QuantityPrescription για να τα διαγράψει
+        Δέχεται σαν ορίσματα το id του Prescription και τις QuantityPrescriptions που έχει μέσα το Prescription\
+        * και αν το QP δεν ειναι null και έχει μέσα σοτυ τιμές*/
+//        public QuantityPrescription getQuantityPrescriptionFromDrug(int prescription_id, Set&lt;QuantityPrescription&gt; quantityPrescription) {
+//                QuantityPrescription qps = null;
+//                if (quantityPrescription != null) {
+//                        System.out.println(&quot;DRUGid = &quot;+ id + &quot;\tQPid = &quot;+ quantityPrescription.size() );
+//                        for (QuantityPrescription qp : quantityPrescriptions) {
+//
+//                                //System.out.println(&quot;DRUGid = &quot;+ id + &quot;\tQPid = &quot;+ qp.getDrug().getId() );
+//                                //System.out.println(&quot;Prescription id = &quot;+ prescription_id + &quot;\tPid = &quot;+ qp.getPrescription().getId() );
+//
+//                                /*Ελέγχει ότι το id του Drug σε αυτή την κλάση με το DrugID που του έστειλα
+//                                 * Ελέγχει ότι το QP_id είεναι το ίδιο με αυτό που υπαρχει και στο Prescription
+//                                 * και επιστρέφει το QuantityPrescription που είναι να διαγραφεί*/
+//                                if (id == qp.getDrug().getId() &amp;&amp; prescription_id==qp.getPrescription().getId()) {
+//                                        qps = qp;
+//                                }
+//                        }
+//                }
+//                return qps;
+//        }
+
+        /*Υλοποιεί μία γραμμική αναζήτηση ότι αν κάποιο φάρμακο έχει το
+        * ίδιο όνομα με άλλο τότε θα καλέιται και θα επιστρέφει FALSE
+        * και δεν θα αφήνει την καταχώρησή του αφού υπάρχει ήδη
+        * κανονικά είναι σε επίπεδο DB αυτό.*/
+        public boolean drugDoesNotExist(Drug drug, List&lt;Drug&gt; listOfAllDrugs){
+<span class="fc" id="L142">                boolean flag = true;</span>
+<span class="fc bfc" id="L143" title="All 2 branches covered.">                for(Drug d : listOfAllDrugs){</span>
+<span class="fc bfc" id="L144" title="All 2 branches covered.">                        if(drug.equals(d)){</span>
+<span class="fc" id="L145">                                flag = false;</span>
+                        }
+<span class="fc bfc" id="L147" title="All 2 branches covered.">                        if(!flag){</span>
+<span class="fc" id="L148">                                break;</span>
+                        }
+<span class="fc" id="L150">                }</span>
+
+<span class="fc" id="L152">                return flag;</span>
+        }
+
+        @Override
+        public boolean equals(Object o) {
+<span class="fc bfc" id="L157" title="All 2 branches covered.">                if (this == o) return true;</span>
+<span class="pc bpc" id="L158" title="1 of 2 branches missed.">                if (!(o instanceof Drug)) return false;</span>
+<span class="fc" id="L159">                Drug drug = (Drug) o;</span>
+<span class="fc" id="L160">                return Objects.equals(drugName, drug.drugName); //&amp;&amp; Objects.equals(drugPrice, drug.drugPrice) ;</span>
+        }
+
+        @Override
+        public int hashCode() {
+<span class="nc" id="L165">                return Objects.hash(drugName, drugPrice);</span>
+        }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

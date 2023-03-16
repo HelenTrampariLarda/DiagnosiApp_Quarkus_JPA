@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Prescription.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">quarkus-application</a> &gt; <a href="index.source.html" class="el_package">com.example.app.domain</a> &gt; <span class="el_source">Prescription.java</span></div><h1>Prescription.java</h1><pre class="source lang-java linenums">package com.example.app.domain;
+
+import com.example.app.util.SystemDate;
+import io.quarkus.hibernate.orm.panache.PanacheEntity;
+//import org.jetbrains.annotations.NotNull;
+
+import javax.persistence.*;
+import javax.persistence.criteria.CriteriaBuilder;
+import java.time.LocalDate;
+import java.util.*;
+
+@Entity
+@Table(name = &quot;prescriptions&quot;)
+public class Prescription {
+
+    @Id
+    @Column(name=&quot;id&quot;)
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Integer id;
+
+
+    /*Στο παρακάτω ορίζω μία συσχέτιση πολλά προς πολλά και δημιουργώ έναν ενδιάμεσο πίνακα
+    * Αυτός έσει σαν προτεύοντα κλειδιά τα id αυτών που είναι η συσχέτιση
+    * Τέλος βάζω σε Μορφή INTERFACE τα φάρμακα
+    * PERSIST και MERGE για να καταχορούνται σαν ένα*/
+   /*$ @ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE },
+            fetch=FetchType.LAZY)
+    @JoinTable(name=&quot;prescription_drug&quot;,
+            joinColumns = {@JoinColumn(name=&quot;prescription_id&quot;)},
+            inverseJoinColumns = {@JoinColumn(name=&quot;drug_id&quot;)}
+    )
+    private Set&lt;Drug&gt; drugs = new HashSet&lt;Drug&gt;();*/
+
+    /*Δεν βάζω NULLABLE γιατί μία συνταγή μπορεί να μην εκτελεστεί ΠΟΤΕ
+    * Cascade ALL διότι αν διαγράψω το Prescription θελω να διαγραφεί και το Execution*/
+
+
+    /*Δεν βάζω NULLABLE γιατί μία συνταγή μπορεί να μην εκτελεστεί ΠΟΤΕ
+     * Cascade ALL διότι αν διαγράψω το Prescription θελω να διαγραφεί και το Execution*/
+
+
+    @Column(name=&quot;doctorAMKA&quot;, length=15, nullable=false)
+    private String doctorAMKA;
+    @Column(name=&quot;patientAMKA&quot;, length=15, nullable=false)
+    private String patientAMKA;
+    @Column(name=&quot;diagnosis&quot;, length=4000, nullable=false)
+    private String diagnosis;
+
+<span class="fc" id="L49">    @Column(name=&quot;creationDate&quot;, length=40)</span>
+<span class="fc" id="L50">    private String creationDate = LocalDate.now().toString();</span>
+
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = &quot;doctorToPrescription&quot;,nullable = false)
+    private Doctor doctorToPrescription;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = &quot;patientToPrescription&quot;, nullable = false)
+    private Patient patientToPrescription;
+
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = &quot;prescription_execution&quot;)
+    private PrescriptionExecution prescriptionExecution;
+
+    /*Σχέση πολλά προς 1 το οποίο πρέπει να είναι mappedBy = &quot;prescription&quot; όπου
+     * αυτό είναι το ίδιο όνομα με τον πίνακα @ManyToOne στο QuantityPrescription*/
+<span class="fc" id="L67">    @OneToMany(mappedBy = &quot;prescription&quot;, cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)</span>
+    private Set&lt;QuantityPrescription&gt; quantityPrescriptions = new HashSet&lt;QuantityPrescription&gt;();
+
+
+<span class="fc" id="L71">    public Prescription(){</span>
+<span class="fc" id="L72">    }</span>
+
+<span class="fc" id="L74">    public Prescription(String doctorAMKA, String patientAMKA, String diagnosis) {</span>
+<span class="fc" id="L75">        this.doctorAMKA = doctorAMKA;</span>
+<span class="fc" id="L76">        this.patientAMKA = patientAMKA;</span>
+<span class="fc" id="L77">        this.diagnosis = diagnosis;</span>
+<span class="fc" id="L78">        this.creationDate = LocalDate.now().toString();</span>
+        //this.prescriptionExecution = prescriptionExecution;
+
+<span class="fc" id="L81">    }</span>
+
+
+    public Integer getId() {
+<span class="fc" id="L85">        return id;</span>
+    }
+
+    public void setId(Integer id) {
+<span class="fc" id="L89">        this.id = id;</span>
+<span class="fc" id="L90">    }</span>
+
+    public String getDoctorAMKA() {
+<span class="fc" id="L93">        return doctorAMKA;</span>
+    }
+
+    public void setDoctorAMKA(String doctorAMKA) {
+<span class="fc" id="L97">        this.doctorAMKA = doctorAMKA;</span>
+<span class="fc" id="L98">    }</span>
+
+    public String getPatientAMKA() {
+<span class="fc" id="L101">        return patientAMKA;</span>
+    }
+
+    public void setPatientAMKA(String patientAMKA) {
+
+<span class="fc" id="L106">        this.patientAMKA = patientAMKA;</span>
+<span class="fc" id="L107">    }</span>
+
+    public String getDiagnosis() {
+<span class="fc" id="L110">        return diagnosis;</span>
+    }
+
+    public void setDiagnosis(String diagnosis) {
+<span class="fc" id="L114">        this.diagnosis = diagnosis;</span>
+<span class="fc" id="L115">    }</span>
+
+    //Getter - Setter για το @Many to One doctorToPrescription
+    public Doctor getDoctorToPrescription() {
+<span class="fc" id="L119">        return doctorToPrescription;</span>
+    }
+    public void setDoctorToPrescription(Doctor doctorToPrescription) {
+<span class="fc" id="L122">        this.doctorToPrescription = doctorToPrescription;</span>
+<span class="fc" id="L123">    }</span>
+
+    //Getter - Setter για το @Many to One patientToPrescription
+    public Patient getPatientToPrescription() {
+<span class="fc" id="L127">        return patientToPrescription;</span>
+    }
+    public void setPatientToPrescription(Patient patientToPrescription) {
+<span class="fc" id="L130">        this.patientToPrescription = patientToPrescription;</span>
+<span class="fc" id="L131">    }</span>
+
+    // @OneToOne για PrescriptionExecution
+    public PrescriptionExecution getPrescriptionExecution() {
+<span class="fc" id="L135">        return prescriptionExecution;</span>
+    }
+    public void setPrescriptionExecution(PrescriptionExecution prescriptionExecution) {
+<span class="fc" id="L138">        this.prescriptionExecution = prescriptionExecution;</span>
+<span class="fc" id="L139">    }</span>
+
+
+    /*Θέλω να μπορώ να τραβάω τα Drug που τα έχω κάνει interface και γίνεται με το παρακάτω*/
+    public Set&lt;QuantityPrescription&gt; getDrugs() {
+<span class="fc" id="L144">        return new HashSet&lt;&gt;(quantityPrescriptions);</span>
+    }
+
+    /*Θεν θέλω SetDrug αλλά θέλω ένα τρόπο να εισάγω και να διαγράφω Drugs από το Prescription*/
+    /*public void addDrug(Drug drug) {
+        QuantityPrescription qp = new QuantityPrescription(this, drug, );
+
+        drug.addQuantityPrescription(quantityPrescriptions);
+    drugs.add(drug);
+    }*/
+
+
+    /*Όταν θέλω να διαγράψω μόνο τις QuantityPrescriptions ενός Prescription χωρίς διαγραφή
+    όλου του Prescription
+
+    * Το Drug είναι ενψμένομένο με το Quantity prescription με OneToMany
+    * Τώρα όταν καλέσω διαγράψω ένα φάρμακο από΄μία συνταγή τότε το Prescription
+    * καλέι την μέθοδο drug.removeQuantityPrescription(drug.getQuantityPrescriptions())
+    * με σκοπό να του εποστρέψει εκίνο το QP που είναι ίδιο με το ID του φαρμάκου
+    * Επειτα΄καλείται η removeQuantityPrescription(qp); όπου χρησιμοποιεί την
+    * προηγούμενη επιστροφή για να διαγράψει το κατάλληλο QP.
+    * ΑΠοτέλεσμα να διαγράφεται το κατάλληλο QP*/
+//    public void removeDrug(Drug drug) {
+//        System.out.println(&quot;DRUG NAME = &quot;+drug.getQuantityPrescriptions().size());
+//        System.out.println(&quot;ID NAME = &quot;+id);
+//        if(drug != null){
+//            QuantityPrescription qp  = drug.getQuantityPrescriptionFromDrug(id, drug.getQuantityPrescriptions());
+//            //System.out.println(&quot;DRUG NAME = &quot;+qp.getDrug().getDrugName());
+//            removeQuantityPrescription(qp);
+//            //$drugs.remove(drug);
+//        }
+//    }
+
+    public void setQuantityPrescriptions(Set&lt;QuantityPrescription&gt; quantityPrescriptions) {
+<span class="fc" id="L178">        this.quantityPrescriptions = quantityPrescriptions;</span>
+<span class="fc" id="L179">    }</span>
+
+    /*Θα επιστρέφει την κίστα με τα Quantity Prescriptions για τον καθορισμό που αριθμού του σκευάσματος
+    * Επιπλέων θα μπορώ να εισάγω τιμές αριθμού σκευασμάτων */
+    public Set&lt;QuantityPrescription&gt; getQuantityPrescriptions() {
+<span class="fc" id="L184">        return new HashSet&lt;&gt;(quantityPrescriptions);</span>
+    }
+
+    /*Εδώ θέλω να εισάγω μία ΠΟΣΟΤΗΤΑ φαρμάκου μέσα στην συνταγή που χρησιμοποιείται από το Test*/
+    public void addQuantityPrescription(QuantityPrescription quantityPrescription) {
+<span class="pc bpc" id="L189" title="1 of 2 branches missed.">        if(quantityPrescription != null) {</span>
+<span class="fc" id="L190">            quantityPrescriptions.add(quantityPrescription);</span>
+        }
+<span class="fc" id="L192">    }</span>
+    public void removeQuantityPrescription(QuantityPrescription quantityPrescription) {
+<span class="nc bnc" id="L194" title="All 2 branches missed.">        if(quantityPrescription != null){</span>
+<span class="nc" id="L195">            quantityPrescriptions.remove(quantityPrescription);</span>
+        }
+<span class="nc" id="L197">    }</span>
+
+    public String getCreationDate() {
+<span class="fc" id="L200">        return creationDate;</span>
+    }
+
+    public void setCreationDate(String creationDate) {
+<span class="fc" id="L204">        this.creationDate = creationDate;</span>
+<span class="fc" id="L205">    }</span>
+
+
+
+    public boolean checkPharmacistGiveCorrectDrugs(List&lt;QuantityPrescription&gt; q_prescription, List&lt;QuantityExecution&gt; q_execution){
+<span class="fc" id="L210">        boolean flag = true;</span>
+
+        /*Το βάζω σύμφωνα με το size του execution καθώς ο φαρμακοποιός μπορεί
+        * να δώσει λιγότερα φάρμακα στον ασθενή. */
+<span class="fc bfc" id="L214" title="All 2 branches covered.">            for(int i=0; i&lt;q_execution.size(); i++){</span>
+<span class="fc" id="L215">                System.out.println(&quot;q_prescription.DrugID != q_prescription.DrugID &quot;+ q_prescription.get(i).getDrug().getId() +&quot;\t&quot;+ q_execution.get(i).getDrug().getId());</span>
+                //Μόνο με equals διότι με το == δεν το καταλαβαίνει
+                /*Θα πρέπει όχι μόνο το φάρμακο να είναι το ίδιο αλλά θα πρέπει και η
+                * ποσότητα που έδωσε ο φαρμακοποιός να έινια ίση ή μικρότερη από αυτή που έδωσε
+                * ο γιατρός*/
+<span class="pc bpc" id="L220" title="1 of 2 branches missed.">                if(!(q_prescription.get(i).getDrug().getId()).equals(q_execution.get(i).getDrug().getId())</span>
+<span class="nc bnc" id="L221" title="All 2 branches missed.">                &amp;&amp; (q_prescription.get(i).getQuantityPrescription()) &lt; (q_execution.get(i).getQuantityExecutionPieces())){</span>
+
+<span class="nc" id="L223">                    flag = false;</span>
+                }
+        }
+
+<span class="fc" id="L227">        return flag;</span>
+    }
+
+
+
+    public void setExecutionFlag2() throws DomainException {
+
+<span class="fc" id="L234">        List&lt;QuantityPrescription&gt; q_prescription = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L235" title="All 2 branches covered.">        for(QuantityPrescription qp: this.getQuantityPrescriptions()){</span>
+<span class="fc" id="L236">            System.out.println(&quot;q_prescription.add(qp);&quot;+ qp.getId() +&quot;\t&quot;+ qp.getQuantityPrescription());</span>
+<span class="fc" id="L237">            q_prescription.add(qp);</span>
+<span class="fc" id="L238">        }</span>
+
+<span class="fc" id="L240">        List&lt;QuantityExecution&gt; q_execution = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L241" title="All 2 branches covered.">        for(QuantityExecution qe : this.getPrescriptionExecution().getQuantityExecutions()){</span>
+<span class="fc" id="L242">            System.out.println(&quot;q_execution.add(qe);&quot;+ qe.getId()+&quot;\t&quot;+qe.getQuantityExecutionPieces());</span>
+<span class="fc" id="L243">            q_execution.add(qe);</span>
+<span class="fc" id="L244">        }</span>
+
+<span class="fc" id="L246">        this.getPrescriptionExecution().setExecutionFlag(q_execution, q_prescription);</span>
+
+<span class="fc" id="L248">    }</span>
+
+}
+
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

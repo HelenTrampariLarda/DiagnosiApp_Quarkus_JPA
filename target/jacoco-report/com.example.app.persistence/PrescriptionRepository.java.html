@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PrescriptionRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">quarkus-application</a> &gt; <a href="index.source.html" class="el_package">com.example.app.persistence</a> &gt; <span class="el_source">PrescriptionRepository.java</span></div><h1>PrescriptionRepository.java</h1><pre class="source lang-java linenums">package com.example.app.persistence;
+
+
+import com.example.app.domain.Pharmacist;
+import com.example.app.domain.Prescription;
+import com.example.app.representation.PrescriptionRepresentation;
+import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
+import io.quarkus.panache.common.Parameters;
+
+import javax.enterprise.context.RequestScoped;
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import java.util.List;
+
+@RequestScoped
+<span class="fc" id="L16">public class PrescriptionRepository implements PanacheRepositoryBase&lt;Prescription, Integer&gt; {</span>
+
+    @Inject
+    EntityManager em;
+
+    public Prescription searchPrescriptionThroughQP(Integer qp_id) {
+
+//        if (qp_id == null) {
+//            return listAll();
+//        }
+<span class="nc" id="L26">        System.out.println(&quot;QP for BUSTED= &quot; + qp_id);</span>
+
+<span class="nc" id="L28">        return find(&quot;select p from Prescription p, QuantityPrescription qp &quot; +</span>
+                        &quot;where p.id = qp.prescription AND qp.id = :qpId&quot; ,
+<span class="nc" id="L30">                Parameters.with(&quot;qpId&quot;, qp_id).map())</span>
+<span class="nc" id="L31">                .firstResult();</span>
+    }
+
+    public Prescription searchPrescriptionInQP(Integer qp_id) {
+
+<span class="fc" id="L36">        System.out.println(&quot;QP for BUSTED= &quot; + qp_id);</span>
+
+<span class="fc" id="L38">        return find(&quot;select qp.prescription from QuantityPrescription qp where qp.id = :qpId&quot; ,</span>
+<span class="fc" id="L39">                Parameters.with(&quot;qpId&quot;, qp_id).map())</span>
+<span class="fc" id="L40">                .firstResult();</span>
+    }
+    public List&lt;Prescription&gt; searchById(Integer p_id) {
+
+
+<span class="fc" id="L45">        return find(&quot;select p from Prescription p where p.id like :pId&quot; ,</span>
+<span class="fc" id="L46">                Parameters.with(&quot;pId&quot;, p_id).map())</span>
+<span class="fc" id="L47">                .list();</span>
+    }
+
+
+    /*Για την κατευθυνόμενη συνταγογράφιση*/
+    public List&lt;Prescription&gt; searchPrescriptionByDoctorPatient() {
+
+<span class="nc" id="L54">        System.out.println(&quot;QP for BUSTED= &quot;);</span>
+
+<span class="nc" id="L56">        return find(&quot;select p.doctorAMKA from Prescription p group by p.doctorAMKA&quot; )</span>
+<span class="nc" id="L57">                .list();</span>
+
+//        return find(&quot;select p from Prescription p, QuantityPrescription qp &quot; +
+//                        &quot;where p.id = qp.prescription group by p.doctorAMKA, p.patientAMKA&quot; )
+//                .list();
+
+    }
+
+    public List&lt;Prescription&gt; searchByPatientAMKA(String patientAMKA) {
+
+<span class="pc bpc" id="L67" title="1 of 2 branches missed.">        if (patientAMKA == null) {</span>
+<span class="nc" id="L68">            return listAll();</span>
+        }
+
+<span class="fc" id="L71">        return find(&quot;select p from Prescription p where p.patientAMKA like :pAmka&quot; ,</span>
+<span class="fc" id="L72">                Parameters.with(&quot;pAmka&quot;, patientAMKA).map())</span>
+<span class="fc" id="L73">                .list();</span>
+    }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

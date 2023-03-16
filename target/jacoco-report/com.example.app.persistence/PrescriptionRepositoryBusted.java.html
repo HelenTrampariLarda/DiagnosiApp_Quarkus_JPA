@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PrescriptionRepositoryBusted.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">quarkus-application</a> &gt; <a href="index.source.html" class="el_package">com.example.app.persistence</a> &gt; <span class="el_source">PrescriptionRepositoryBusted.java</span></div><h1>PrescriptionRepositoryBusted.java</h1><pre class="source lang-java linenums">package com.example.app.persistence;
+
+
+import com.example.app.domain.Pharmacist;
+import com.example.app.domain.Prescription;
+import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
+import io.quarkus.panache.common.Parameters;
+
+import javax.enterprise.context.RequestScoped;
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import java.util.List;
+
+@RequestScoped
+<span class="fc" id="L15">public class PrescriptionRepositoryBusted implements PanacheRepositoryBase&lt;Prescription, Integer&gt; {</span>
+
+    @Inject
+    EntityManager em;
+
+    public List&lt;Prescription&gt; searchPrescriptionThroughQP2(Integer qp_id) {
+<span class="nc" id="L21">        System.out.println(&quot;QP for BUSTED= &quot; + qp_id);</span>
+<span class="nc bnc" id="L22" title="All 2 branches missed.">        if (qp_id == null) {</span>
+<span class="nc" id="L23">            return listAll();</span>
+        }
+
+<span class="nc" id="L26">        return find(&quot;select p from Prescription p inner join QuantityPrescription qp &quot; +</span>
+                        &quot;on p.id = qp.prescription where qp.id = :qpId&quot;,
+<span class="nc" id="L28">                Parameters.with(&quot;qpId&quot;, qp_id).map())</span>
+<span class="nc" id="L29">                .firstResult();</span>
+    }
+
+    public List&lt;Integer&gt; searchPrescriptionInQP2(Integer qp_id) {
+
+<span class="nc" id="L34">        System.out.println(&quot;QP for BUSTED= &quot; + qp_id);</span>
+
+<span class="nc" id="L36">        return find(&quot;select qp.prescription_id from QuantityPrescription qp where qp.prescription = :qpId&quot; ,</span>
+<span class="nc" id="L37">                Parameters.with(&quot;qpId&quot;, qp_id).map())</span>
+<span class="nc" id="L38">                .firstResult();</span>
+    }
+
+    public List&lt;Prescription&gt; searchById(Integer p_id) {
+
+<span class="nc bnc" id="L43" title="All 2 branches missed.">        if (p_id == null) {</span>
+<span class="nc" id="L44">            return listAll();</span>
+        }
+
+<span class="nc" id="L47">        return find(&quot;select p from Prescription p where p.id like :pId&quot; ,</span>
+<span class="nc" id="L48">                Parameters.with(&quot;pId&quot;, p_id).map())</span>
+<span class="nc" id="L49">                .firstResult();</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Authentication.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">quarkus-application</a> &gt; <a href="index.source.html" class="el_package">com.example.app.domain</a> &gt; <span class="el_source">Authentication.java</span></div><h1>Authentication.java</h1><pre class="source lang-java linenums">package com.example.app.domain;
+
+import javax.persistence.*;
+import java.util.Objects;
+
+@Entity
+@Table(name=&quot;authentications&quot;)
+public class Authentication {
+    @Id
+    @Column(name=&quot;id&quot;)
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Integer id;
+
+    @Column(name=&quot;username&quot;,length = 200, nullable = false)
+    private String Username; //AMKA Γιατρού ή Φαρμακοποιού
+
+    @Column(name=&quot;password&quot;,length = 200, nullable = false)
+    private String Password;
+
+<span class="fc" id="L20">    public Authentication() {</span>
+
+<span class="fc" id="L22">    }</span>
+
+<span class="fc" id="L24">    public Authentication(String username, String password) {</span>
+<span class="fc" id="L25">        this.Username = username;</span>
+<span class="fc" id="L26">        this.Password = password;</span>
+<span class="fc" id="L27">    }</span>
+
+    public String getUsername() {
+        //System.out.println(&quot;USERNAME = &quot;+Username);
+<span class="nc" id="L31">        return Username;</span>
+    }
+
+    public String getPassword() {
+<span class="fc" id="L35">        return Password;</span>
+    }
+
+
+    /*Ένας χρήστης δεν θα μπορεί να δημιουργήσει λογαριασμό αν δεν βάλει και
+    * username και password μαζι.*/
+    public Authentication setUsernamePassword(String username, String password){
+<span class="nc" id="L42">        Authentication user = new Authentication(username,password);</span>
+<span class="nc" id="L43">        return user;</span>
+    }
+
+
+    /*Για να πετύχει η αλλαγή κωδικού θα πρέπει και το username και το pass να είναι σωστά*/
+    public void changeLogInPassword(String username, String password, String new_password) throws DomainException{
+<span class="nc bnc" id="L49" title="All 4 branches missed.">        if(password == Password &amp;&amp; username == Username){</span>
+<span class="nc" id="L50">            this.Password = new_password;</span>
+            //System.out.println(&quot;NEW PASSWORD = &quot;+ new_password);
+        }else{
+            //System.out.println(&quot;Wrong old password!!!!!!!!!!!&quot;);
+<span class="nc" id="L54">            throw new DomainException(&quot;Wrong old username or password&quot;);</span>
+        }
+
+<span class="nc" id="L57">    }</span>
+
+
+    @Override
+    public boolean equals(Object o) {
+<span class="pc bpc" id="L62" title="1 of 2 branches missed.">        if (this == o) return true;</span>
+<span class="pc bpc" id="L63" title="1 of 2 branches missed.">        if (!(o instanceof Authentication)) return false;</span>
+<span class="fc" id="L64">        Authentication that = (Authentication) o;</span>
+<span class="fc bfc" id="L65" title="All 4 branches covered.">        return Username.equals(that.Username) &amp;&amp; Password.equals(that.Password);</span>
+    }
+
+    @Override
+    public int hashCode() {
+<span class="nc" id="L70">        return Objects.hash(Username, Password);</span>
+    }
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

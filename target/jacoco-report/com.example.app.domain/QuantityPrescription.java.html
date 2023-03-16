@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>QuantityPrescription.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">quarkus-application</a> &gt; <a href="index.source.html" class="el_package">com.example.app.domain</a> &gt; <span class="el_source">QuantityPrescription.java</span></div><h1>QuantityPrescription.java</h1><pre class="source lang-java linenums">package com.example.app.domain;
+
+import javax.persistence.*;
+import java.time.LocalDate;
+import java.util.Objects;
+
+
+@Entity
+@Table(name=&quot;quantityPrescriptions&quot;)
+public class QuantityPrescription {
+
+    @Id
+    @Column(name=&quot;Id&quot;, nullable = false)
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Integer id;
+
+    @Column(name=&quot;quantityPrescription&quot;, length = 10, nullable = false)
+    private Integer quantityPrescription;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = &quot;drug_id&quot;, nullable = false)
+    private Drug drug;
+
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = &quot;prescription_id&quot;)
+    private Prescription prescription; //Αυτό το όνομα πρέπει να είναι το ίδιο στο mappedBy = &quot;prescription&quot;
+
+
+<span class="fc" id="L29">    public QuantityPrescription(){</span>
+
+<span class="fc" id="L31">    }</span>
+
+    /*Εδώ στον Constructor πρέπει να βάλω τα 2 κλειδιά που είναι από τους 2 πίνακες που ενώνονται*/
+<span class="fc" id="L34">    public QuantityPrescription(Prescription prescription, Drug drug, Integer quantityPrescription) {</span>
+<span class="fc" id="L35">        this.prescription= prescription;</span>
+<span class="fc" id="L36">        this.drug = drug;</span>
+<span class="fc" id="L37">        this.quantityPrescription = quantityPrescription;</span>
+<span class="fc" id="L38">    }</span>
+
+
+    public Integer getId() {
+<span class="fc" id="L42">        return id;</span>
+    }
+
+    public void setId(Integer id) {
+<span class="fc" id="L46">        this.id = id;</span>
+<span class="fc" id="L47">    }</span>
+
+    public Drug getDrug() {
+<span class="fc" id="L50">        return drug;</span>
+    }
+
+    public void setDrug(Drug drug) {
+<span class="fc" id="L54">        this.drug = drug;</span>
+<span class="fc" id="L55">    }</span>
+
+    public void setPrescription(Prescription prescription) {
+<span class="fc" id="L58">        this.prescription = prescription;</span>
+<span class="fc" id="L59">    }</span>
+
+    public Prescription getPrescription() {
+<span class="fc" id="L62">        return prescription;</span>
+    }
+
+
+    public void setQuantityPrescription(Integer quantityPrescription) {
+<span class="fc" id="L67">        this.quantityPrescription = quantityPrescription;</span>
+<span class="fc" id="L68">    }</span>
+
+
+    public Integer getQuantityPrescription() {
+<span class="fc" id="L72">        return quantityPrescription;</span>
+    }
+
+
+    /*Ελέγχει αν η ποσότητα που έγραψε ο γιατρός για το συγκεκριμένο DRUG είναι μεγαλύτερη ή μικρότερη από
+    * αυτή που αρίζει ο ΕΟΠΠΥ στην ActiveSubstance*/
+    public boolean isInsideLimit(){
+        boolean flag;
+
+<span class="fc" id="L81">        String presentMonth = LocalDate.now().toString();</span>
+
+
+<span class="fc" id="L84">        System.out.println(&quot;prescription.getCreationDate() 1=  &quot;+ this.getPrescription().getCreationDate().substring(5,7) +&quot;\t&quot;+ presentMonth.substring(5,7));</span>
+<span class="fc bfc" id="L85" title="All 2 branches covered.">        if (this.getQuantityPrescription() &lt;= this.getDrug().getActiveSubstance().getQuantity() &amp;&amp;</span>
+<span class="pc bpc" id="L86" title="1 of 2 branches missed.">                this.getPrescription().getCreationDate().substring(5,7).equals(presentMonth.substring(5,7))){</span>
+<span class="fc" id="L87">            flag = true;</span>
+//            System.out.println(&quot;QuantityPrescription BUSTED= &quot;+ this.getPrescription().getId());
+        } else {
+<span class="fc" id="L90">            flag = false;</span>
+        }
+<span class="fc" id="L92">        return flag;</span>
+    }
+
+
+
+    public boolean isInsideLimit2(Integer quantity){
+        boolean flag;
+
+<span class="fc" id="L100">        String presentMonth = LocalDate.now().toString();</span>
+
+
+<span class="fc" id="L103">        System.out.println(&quot;prescription.getCreationDate() 1=  &quot;+ this.getPrescription().getCreationDate().substring(5,7) +&quot;\t&quot;+ presentMonth.substring(5,7));</span>
+<span class="fc bfc" id="L104" title="All 2 branches covered.">        if (quantity &lt;= this.getDrug().getActiveSubstance().getQuantity() &amp;&amp;</span>
+<span class="pc bpc" id="L105" title="1 of 2 branches missed.">                this.getPrescription().getCreationDate().substring(5,7).equals(presentMonth.substring(5,7))){</span>
+<span class="fc" id="L106">            flag = true;</span>
+//            System.out.println(&quot;QuantityPrescription BUSTED= &quot;+ this.getPrescription().getId());
+        } else {
+<span class="fc" id="L109">            flag = false;</span>
+        }
+<span class="fc" id="L111">        return flag;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

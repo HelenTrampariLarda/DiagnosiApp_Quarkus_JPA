@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DoctorResource.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">quarkus-application</a> &gt; <a href="index.source.html" class="el_package">com.example.app.resource</a> &gt; <span class="el_source">DoctorResource.java</span></div><h1>DoctorResource.java</h1><pre class="source lang-java linenums">package com.example.app.resource;
+
+import com.example.app.EopyyException;
+import com.example.app.domain.ActiveSubstance;
+import com.example.app.domain.Doctor;
+import com.example.app.domain.Patient;
+import com.example.app.domain.Pharmacist;
+import com.example.app.persistence.DoctorRepository;
+import com.example.app.representation.*;
+
+import javax.enterprise.context.RequestScoped;
+import javax.inject.Inject;
+import javax.transaction.Transactional;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
+
+import java.net.URI;
+import java.util.Collections;
+import java.util.List;
+
+import static com.example.app.resource.Uri.DOCTOR;
+
+@Path(DOCTOR)
+@RequestScoped
+<span class="fc" id="L28">public class DoctorResource {</span>
+    @Context
+    UriInfo uriInfo;
+
+    @Inject
+    DoctorMapper doctorMapper;
+
+    @Inject
+    DoctorRepository doctorRepository;
+
+    @GET
+    @Path(&quot;/{doctorId}&quot;)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
+    public Response find(@PathParam(&quot;doctorId&quot;) Integer doctorId){
+
+<span class="fc" id="L44">        Doctor doc = doctorRepository.findById(doctorId);</span>
+<span class="fc bfc" id="L45" title="All 2 branches covered.">        if (doc == null) {</span>
+<span class="fc" id="L46">            return Response.status(Response.Status.NOT_FOUND).build();</span>
+        }
+
+<span class="fc" id="L49">        return Response.ok().entity(doctorMapper.toRepresentation(doc)).build();</span>
+    }
+
+    @GET
+    @Path(&quot;/all&quot;)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
+    public List&lt;DoctorRepresentation&gt; listAll() {
+<span class="fc" id="L57">        return doctorMapper.toRepresentationList(doctorRepository.listAll());</span>
+    }
+
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Transactional
+    public Response addNewPDoctor(DoctorRepresentation dto){
+
+<span class="fc" id="L65">        Doctor doctor = doctorMapper.toModel(dto);</span>
+        //έλεγχοι ακερααιότητας , πληρότητας και αποθήκευση
+
+        //Αποθήκευση
+<span class="fc" id="L69">        List&lt;Doctor&gt; d = doctorRepository.search(dto.afm);</span>
+
+
+
+        //έλεγχος  όοτι δεν θα υπάρξει είσοδος ιατρού με το ίδιο AFM
+<span class="fc bfc" id="L74" title="All 2 branches covered.">        if (d.size() == 0) {</span>
+            //doctorRepository.getEntityManager().merge(doctor);
+<span class="fc" id="L76">            doctorRepository.persist(doctor);</span>
+        }
+<span class="fc" id="L78">        else {return Response.status(404).build();}</span>
+
+
+<span class="fc" id="L81">        URI locationUri = uriInfo.getAbsolutePathBuilder()</span>
+<span class="fc" id="L82">                .path(doctor.getId().toString())</span>
+<span class="fc" id="L83">                .build();</span>
+
+<span class="fc" id="L85">        DoctorRepresentation savedDoc = doctorMapper.toRepresentation(doctor);</span>
+<span class="fc" id="L86">        return Response.created(locationUri).entity(savedDoc).build();</span>
+
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
+    public List&lt;DoctorRepresentation&gt; findByAfm(@QueryParam(&quot;doctorAfm&quot;) String doctorAfm) {
+<span class="fc" id="L94">        return doctorMapper.toRepresentationList(doctorRepository.search(doctorAfm));</span>
+    }
+
+    @PUT
+    @Path(&quot;/{id}&quot;)
+    @Transactional
+    public Response updateDoctor(@PathParam(&quot;id&quot;) Integer id, DoctorRepresentation representation) {
+
+
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">        if (!id.equals(representation.id)) {</span>
+<span class="nc" id="L104">            throw new RuntimeException();</span>
+        }
+
+<span class="fc" id="L107">        Doctor updDoc = doctorMapper.toModel(representation);</span>
+
+<span class="fc" id="L109">        List&lt;Doctor&gt; d1 = doctorRepository.search(representation.afm);</span>
+<span class="fc" id="L110">        Doctor d2 = doctorRepository.findById(id);</span>
+
+<span class="fc" id="L112">        Doctor d11 = doctorRepository.findById(id);</span>
+<span class="fc" id="L113">        Doctor d22 = doctorRepository.findById(representation.id);</span>
+
+        //Ελέγχω ότι το άτομο του οποίου τα στοιχεία κοιτάω να αλλάξω υπάρχει και είναι ΜΟΝΑΔΙΚΟ
+<span class="pc bpc" id="L116" title="3 of 6 branches missed.">        if (d1.size() == 1 &amp;&amp; d11.getAmka() == d22.getAmka() &amp;&amp; d1.get(0).getAfm() == d2.getAfm()) {</span>
+<span class="fc" id="L117">            doctorRepository.getEntityManager().merge(updDoc);</span>
+        } else {
+<span class="nc" id="L119">            System.out.println(&quot;CHANGE of AMKA or AFM is not permitted.&quot;);</span>
+<span class="nc" id="L120">            new EopyyException(&quot;CHANGE of AMKA or AFM is not permitted.&quot;);</span>
+        }
+
+<span class="fc" id="L123">        return Response.noContent().build();</span>
+    }
+
+
+    @DELETE
+    @Path(&quot;{id:[0-9]+}&quot;)
+    @Transactional
+    public Response removeDoctor(@PathParam(&quot;id&quot;) Integer id){
+<span class="nc" id="L131">        Doctor doctor = doctorRepository.findById(id);</span>
+
+<span class="nc bnc" id="L133" title="All 2 branches missed.">        if (id == null){</span>
+<span class="nc" id="L134">            return Response.status(404).build();</span>
+        }
+<span class="nc" id="L136">        doctorRepository.delete(&quot;id&quot;, doctor.getId());</span>
+
+<span class="nc" id="L138">        return Response.noContent().build();</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

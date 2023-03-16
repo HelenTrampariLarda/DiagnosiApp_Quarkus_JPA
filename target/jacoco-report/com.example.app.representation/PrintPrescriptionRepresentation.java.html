@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PrintPrescriptionRepresentation.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">quarkus-application</a> &gt; <a href="index.source.html" class="el_package">com.example.app.representation</a> &gt; <span class="el_source">PrintPrescriptionRepresentation.java</span></div><h1>PrintPrescriptionRepresentation.java</h1><pre class="source lang-java linenums">package com.example.app.representation;
+
+import com.example.app.domain.Prescription;
+import com.example.app.domain.executionPrescriptionFlag;
+
+import javax.inject.Inject;
+
+<span class="fc" id="L8">public class PrintPrescriptionRepresentation {</span>
+
+    @Inject
+    PrescriptionMapper prescriptionMapper;
+    @Inject
+    ActiveSubstanceRepresentation activeSubstanceRepresentation;
+    @Inject
+    DoctorRepresentation doctorRepresentation;
+
+    public void print(PrescriptionRepresentation prescriptionRepresentation){
+
+<span class="fc" id="L19">        System.out.println();</span>
+<span class="fc" id="L20">        System.out.println(&quot;PRINT THE PRESCRIPTION's DETAILS&quot;);</span>
+<span class="fc" id="L21">        System.out.println(&quot;Id of prescription: &quot;+prescriptionRepresentation.id);</span>
+<span class="fc" id="L22">        System.out.println();</span>
+
+<span class="fc" id="L24">        System.out.println(&quot;AMKA of the Doctor of the prescription: &quot;+prescriptionRepresentation.doctorAMKA);</span>
+<span class="fc" id="L25">        System.out.println();</span>
+
+<span class="fc" id="L27">        System.out.println(&quot;Doctor of the prescription - first_name, last_name&quot;);</span>
+<span class="fc" id="L28">        System.out.println(&quot;First Name: &quot;+prescriptionRepresentation.doctorToPrescription.firstName);</span>
+<span class="fc" id="L29">        System.out.println(&quot;Last Name: &quot;+prescriptionRepresentation.doctorToPrescription.lastName);</span>
+<span class="fc" id="L30">        System.out.println();</span>
+
+<span class="fc" id="L32">        System.out.println(&quot;AMKA of the Patient of the prescription: &quot;+prescriptionRepresentation.patientAMKA);</span>
+<span class="fc" id="L33">        System.out.println();</span>
+
+<span class="fc" id="L35">        System.out.println(&quot;Diagnosis of the patient: &quot;+prescriptionRepresentation.diagnosis);</span>
+<span class="fc" id="L36">        System.out.println();</span>
+
+<span class="fc" id="L38">        System.out.println(&quot;Quantities of drugs in the prescription written by the doctor - id, drugName, quantity&quot;);</span>
+<span class="fc bfc" id="L39" title="All 2 branches covered.">        for (int i=0;i&lt;prescriptionRepresentation.quantityPrescriptions.size();i++){</span>
+<span class="fc" id="L40">            System.out.println(i+1+&quot;.&quot;);</span>
+<span class="fc" id="L41">            System.out.println(&quot;Id: &quot;+prescriptionRepresentation.quantityPrescriptions.get(i).id);</span>
+<span class="fc" id="L42">            System.out.println(&quot;Drug Name: &quot;+prescriptionRepresentation.quantityPrescriptions.get(i).drug.drugName);</span>
+<span class="fc" id="L43">            System.out.println(&quot;Drug Quantity: &quot;+prescriptionRepresentation.quantityPrescriptions.get(i).quantityPrescription);</span>
+        }
+
+<span class="fc" id="L46">        System.out.println();</span>
+<span class="fc" id="L47">        System.out.println(&quot;Pharmacist of the execution of the prescription - first_name, last_name&quot;);</span>
+<span class="fc" id="L48">        System.out.println(&quot;First Name: &quot;+prescriptionRepresentation.prescriptionExecution.pharmacist.lastName);</span>
+<span class="fc" id="L49">        System.out.println(&quot;Last Name: &quot;+prescriptionRepresentation.prescriptionExecution.pharmacist.firstName);</span>
+
+<span class="pc bpc" id="L51" title="1 of 2 branches missed.">        if(prescriptionRepresentation.prescriptionExecution!=null){</span>
+<span class="fc" id="L52">            System.out.println();</span>
+<span class="fc" id="L53">            System.out.println(&quot;Quantities of drugs that patient end up buying from the prescription - id, quantity execution&quot;);</span>
+<span class="fc" id="L54">            System.out.println(&quot;Id: &quot;+prescriptionRepresentation.prescriptionExecution.id);</span>
+<span class="fc bfc" id="L55" title="All 2 branches covered.">            for (int i=0;i&lt;prescriptionRepresentation.prescriptionExecution.quantityExecutions.size();i++){</span>
+<span class="fc" id="L56">                System.out.println(i+1+&quot;.&quot;);</span>
+<span class="fc" id="L57">                System.out.println(&quot;Quantity Executed: &quot;+prescriptionRepresentation.prescriptionExecution.quantityExecutions.get(i).quantityExecutionPieces);</span>
+            }
+
+<span class="fc" id="L60">            System.out.println();</span>
+<span class="pc bpc" id="L61" title="1 of 2 branches missed.">            if(prescriptionRepresentation.prescriptionExecution.executionFlag.equals(executionPrescriptionFlag.PARTIALLY)){</span>
+<span class="fc" id="L62">                System.out.println(&quot;Type of execution: &quot;+prescriptionRepresentation.prescriptionExecution.executionFlag+&quot; EXECUTED&quot;);</span>
+            }else {
+<span class="nc" id="L64">                System.out.println(&quot;Type of execution: &quot; + prescriptionRepresentation.prescriptionExecution.executionFlag);</span>
+            }
+<span class="fc" id="L66">            System.out.println();</span>
+<span class="fc" id="L67">            System.out.println(&quot;Total cost of the drugs that the patient bought: &quot;+prescriptionRepresentation.prescriptionExecution.summaryCost+&quot;€&quot;);</span>
+<span class="fc" id="L68">            System.out.println();</span>
+
+        }
+
+<span class="fc" id="L72">        System.out.println(&quot;--------END OF PRINT--------&quot;);</span>
+
+
+<span class="fc" id="L75">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

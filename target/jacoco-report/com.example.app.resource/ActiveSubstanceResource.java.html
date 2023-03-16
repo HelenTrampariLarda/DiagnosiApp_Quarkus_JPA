@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ActiveSubstanceResource.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">quarkus-application</a> &gt; <a href="index.source.html" class="el_package">com.example.app.resource</a> &gt; <span class="el_source">ActiveSubstanceResource.java</span></div><h1>ActiveSubstanceResource.java</h1><pre class="source lang-java linenums">package com.example.app.resource;
+
+import com.example.app.EopyyException;
+import com.example.app.domain.ActiveSubstance;
+import com.example.app.domain.Authentication;
+import com.example.app.domain.Drug;
+import com.example.app.domain.ToHexString;
+import com.example.app.persistence.ActiveSubstanceRepository;
+import com.example.app.persistence.AuthenticationRepository;
+import com.example.app.representation.ActiveSubstanceMapper;
+import com.example.app.representation.ActiveSubstanceRepresentation;
+import com.example.app.representation.DrugRepresentation;
+import jdk.jfr.ContentType;
+
+import static com.example.app.domain.ToHexString.getSHA;
+import static com.example.app.resource.Uri.SUBSTANCE;
+
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.List;
+
+import javax.annotation.security.RolesAllowed;
+import javax.enterprise.context.RequestScoped;
+import javax.inject.Inject;
+import javax.transaction.Transactional;
+import javax.ws.rs.*;
+import javax.ws.rs.core.*;
+
+
+@Path(SUBSTANCE)
+@RequestScoped
+<span class="fc" id="L34">public class ActiveSubstanceResource {</span>
+
+    @Context
+    UriInfo uriInfo;
+
+    @Inject
+    ActiveSubstanceRepository activeSubstanceRepository;
+
+    @Inject
+    ActiveSubstanceMapper activeSubstanceMapper;
+
+    @Inject
+    AuthenticationRepository authenticationRepository;
+
+
+    @GET
+    @Path(&quot;/{substanceId}&quot;)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
+    public Response find(@PathParam(&quot;substanceId&quot;) Integer substanceId) {
+<span class="fc" id="L54">        ActiveSubstance as = activeSubstanceRepository.findById(substanceId);</span>
+<span class="fc bfc" id="L55" title="All 2 branches covered.">        if (as == null) {</span>
+<span class="fc" id="L56">            return Response.status(Response.Status.NOT_FOUND).build();</span>
+        }
+
+
+<span class="fc" id="L60">        return Response.ok().entity(activeSubstanceMapper.toRepresentation(as)).build();</span>
+    }
+
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
+    public List&lt;ActiveSubstanceRepresentation&gt; searchActiveSubstanceByName(@QueryParam(&quot;name&quot;) String substanceName) {
+
+<span class="fc" id="L69">        return activeSubstanceMapper.toRepresentationList(activeSubstanceRepository.search(substanceName));</span>
+    }
+
+    @GET
+    @Path(&quot;/all&quot;)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
+    public List&lt;ActiveSubstanceRepresentation&gt; listAll() {
+<span class="fc" id="L77">        return activeSubstanceMapper.toRepresentationList(activeSubstanceRepository.listAll());</span>
+    }
+
+
+    /*Στο παρακάτω παράδειγμα κάνω έναν κύκλο Δηλαδή:
+     * Μου στέλνουν μέσω στο Representation ένα αντικείμενο,
+     * το κάνω Model δηλαδή το μετατρέπω σε domai Logic ώστε να μπορώ να το διαβάσω
+     * το κάνω PERSIST για να αποθηκευθεί στην DB
+     * έπειτα παίρνω το URL του
+     * το αποθηκεύω σε μία μεταβλητή ώστε
+     * να το κάνω RETURN  και να το εμφανίσω πίσω στον πελάτη*/
+    @POST
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Transactional
+    public Response addNewActiveSubstance(ActiveSubstanceRepresentation dto) {
+
+<span class="fc" id="L93">        ActiveSubstance entity = activeSubstanceMapper.toModel(dto);</span>
+
+<span class="fc" id="L95">        List&lt;ActiveSubstance&gt; asName = activeSubstanceRepository.search(dto.substanceName);</span>
+
+        //Ελέγχω ότι δεν υπάρχει κάτι με το ίδιο όνομα δραστικής ουσίας
+<span class="fc bfc" id="L98" title="All 2 branches covered.">        if ( asName.size() == 0){</span>
+            //activeSubstanceRepository.getEntityManager().merge(entity);
+<span class="fc" id="L100">            activeSubstanceRepository.persist((entity));</span>
+
+        } else {
+<span class="fc" id="L103">            return Response.status(404).build();</span>
+            //throw new EopyyException(&quot;Active Substance is Already Exist.&quot;);
+        }
+
+<span class="fc" id="L107">        URI locationUri = uriInfo.getAbsolutePathBuilder()</span>
+<span class="fc" id="L108">                .path(Integer.toString(entity.getId()))</span>
+<span class="fc" id="L109">                .build();</span>
+
+<span class="fc" id="L111">        ActiveSubstanceRepresentation savedActiveSubstance = activeSubstanceMapper.toRepresentation(entity);</span>
+<span class="fc" id="L112">        return Response.created(locationUri).entity(savedActiveSubstance).build();</span>
+    }
+
+
+    @PUT
+    @Path(&quot;/{id}&quot;)
+    @Transactional
+    public Response updateActiveSubstance(@PathParam(&quot;id&quot;) Integer id, ActiveSubstanceRepresentation representation) {
+
+        /*Ελέγχει ότι το id του URL είναι το ίδιο με το id του AS Representation
+        * καθώς και ότι παρακάτω ότι το id του AS είναι υπαρκότ στην DB*/
+
+<span class="pc bpc" id="L124" title="1 of 2 branches missed.">        if (! id.equals(representation.id)) {</span>
+<span class="nc" id="L125">            throw new RuntimeException();</span>
+        }
+
+<span class="fc" id="L128">        ActiveSubstance activeSubstance = activeSubstanceMapper.toModel(representation);</span>
+
+<span class="fc" id="L130">        ActiveSubstance as = activeSubstanceRepository.findById(id);</span>
+
+        //Ελέγχω ότι το activeSubstance που πάω να αλλάξω υπάρχει και είναι μοναδικό
+<span class="pc bpc" id="L133" title="1 of 2 branches missed.">        if ( as != null){</span>
+<span class="fc" id="L134">            activeSubstanceRepository.getEntityManager().merge(activeSubstance);</span>
+        } else {
+<span class="nc" id="L136">            new EopyyException(&quot;Wrong Active Substance&quot;);</span>
+        }
+
+<span class="fc" id="L139">        return Response.noContent().build();</span>
+    }
+
+    @DELETE
+    @Path(&quot;{id:[0-9]+}&quot;)
+    @Transactional
+    public Response removeActiveSubstance(@PathParam(&quot;id&quot;) Integer substanceId, String password){
+<span class="fc" id="L146">        ActiveSubstance as = activeSubstanceRepository.findById(substanceId);</span>
+<span class="fc" id="L147">        Authentication a = authenticationRepository.findById(9999);</span>
+
+<span class="fc" id="L149">        String hash = null;</span>
+        try {
+<span class="fc" id="L151">            hash = ToHexString.toHexString(getSHA(password));</span>
+<span class="nc" id="L152">        } catch (NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L153">            throw new RuntimeException(e);</span>
+<span class="fc" id="L154">        }</span>
+
+
+<span class="pc bpc" id="L157" title="1 of 2 branches missed.">        if (as == null){</span>
+<span class="nc" id="L158">            return Response.status(404).build();</span>
+        }
+<span class="fc bfc" id="L160" title="All 2 branches covered.">        if(hash.equals(a.getPassword())){</span>
+<span class="fc" id="L161">            activeSubstanceRepository.delete(&quot;id&quot;, as.getId());</span>
+        } else {
+<span class="fc" id="L163">            System.out.println(&quot;PERMISSION DENIED wrong password&quot;);</span>
+<span class="fc" id="L164">            new EopyyException(&quot;PERMISSION DENIED wrong password&quot;);</span>
+        }
+
+
+<span class="fc" id="L168">        return Response.noContent().build();</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

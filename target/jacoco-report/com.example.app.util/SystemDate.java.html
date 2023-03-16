@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SystemDate.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">quarkus-application</a> &gt; <a href="index.source.html" class="el_package">com.example.app.util</a> &gt; <span class="el_source">SystemDate.java</span></div><h1>SystemDate.java</h1><pre class="source lang-java linenums">package com.example.app.util;
+
+import java.time.LocalDate;
+
+/**
+ * Βοηθητική κλάση για τη λήψη της ημερομηνίας του συστήματος.
+ * Η κλάση επιτρέπει να υποκατασταθεί η ημερομηνία του συστήματος με μία
+ * προκαθορισμένη ημερομηνία. Η δυνατότητα αυτή
+ * είναι ιδιαίτερη χρήσιμη για την εκτέλεση αυτόματων ελέγχων.
+ * @author Νίκος Διαμαντίδης
+ *
+ */
+public class SystemDate {
+
+    /**
+     * Απαγορεύουμε τη δημιουργία αντικείμενων.
+     */
+<span class="nc" id="L18">    protected SystemDate() { }</span>
+
+    private static LocalDate stub;
+
+
+    /**
+     * Θέτει μία συγκεκριμένη ημερομηνία ως την ημερομηνία του συστήματος.
+     * Η ημερομηνία αυτή επιστρέφεται από την {@link SystemDate#now()}.
+     * Εάν αντί για προκαθορισμένης ημερομηνίας τεθεί
+     * {@code null} τότε επιστρέφεται
+     * η πραγματική ημερομηνία του συστήματος
+     * @param stubDate Η ημερομηνία η οποία θα επιστρέφεται
+     * ως ημερομηνία του συστήματος ή {@code null} για
+     * να επιστρέφει την πραγματική ημερομηνία
+     */
+    protected static void setStub(LocalDate stubDate) {
+<span class="nc" id="L34">        stub = stubDate;</span>
+<span class="nc" id="L35">    }</span>
+
+    /**
+     * Απομακρύνει το στέλεχος.
+     */
+    protected static void removeStub() {
+<span class="nc" id="L41">        stub = null;</span>
+<span class="nc" id="L42">    }</span>
+
+
+    /**
+     * Επιστρέφει την ημερομηνία του συστήματος ή μία
+     * προκαθορισμένη ημερομηνία που έχει
+     * τεθεί από την {@link SystemDate#setStub}.
+     * @return Η ημερομηνία του συστήματος ή μία προκαθορισμένη ημερομηνία
+     */
+    public static LocalDate now() {
+<span class="nc bnc" id="L52" title="All 2 branches missed.">        return stub == null ? LocalDate.now() : stub;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

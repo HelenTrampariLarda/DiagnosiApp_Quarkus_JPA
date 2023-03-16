@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PrescriptionResource.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">quarkus-application</a> &gt; <a href="index.source.html" class="el_package">com.example.app.resource</a> &gt; <span class="el_source">PrescriptionResource.java</span></div><h1>PrescriptionResource.java</h1><pre class="source lang-java linenums">package com.example.app.resource;
+
+import com.example.app.EopyyException;
+import com.example.app.domain.*;
+import com.example.app.persistence.*;
+import com.example.app.representation.*;
+
+import javax.enterprise.context.RequestScoped;
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import javax.transaction.Transactional;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
+import java.net.URI;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+
+import static com.example.app.resource.Uri.DOCTOR;
+import static com.example.app.resource.Uri.PRESCRIPTION;
+
+@Path(PRESCRIPTION)
+@RequestScoped
+<span class="fc" id="L31">public class PrescriptionResource {</span>
+    @Context
+    UriInfo uriInfo;
+
+    @Inject
+    EntityManager em;
+
+    @Inject
+    PrescriptionMapper prescriptionMapper;
+
+    @Inject
+    PrescriptionRepository prescriptionRepository;
+
+    @Inject
+    QuantityPrescriptionMapper quantityPrescriptionMapper;
+    @Inject
+    QuantityPrescriptionRepository quantityPrescriptionRepository;
+
+    @Inject
+    PrescriptionExecutionMapper prescriptionExecutionMapper;
+
+    @Inject
+    PrescriptionExecutionRepository prescriptionExecutionRepository;
+
+    @Inject
+    QuantityExecutionRepository quantityExecutionRepository;
+
+    @Inject
+    QuantityExecutionMapper quantityExecutionMapper;
+
+    @Inject
+    DoctorRepository doctorRepository;
+
+    @GET
+    @Path(&quot;/{prescriptionId}&quot;)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
+    public Response find(@PathParam(&quot;prescriptionId&quot;) Integer prescriptionId){
+
+<span class="fc" id="L70">        Prescription prescription = prescriptionRepository.findById(prescriptionId);</span>
+<span class="pc bpc" id="L71" title="1 of 2 branches missed.">        if (prescription == null) {</span>
+<span class="nc" id="L72">            return Response.status(Response.Status.NOT_FOUND).build();</span>
+        }
+
+<span class="fc" id="L75">        System.out.println(&quot;PRESCRIPTION Representation GET= &quot;+ prescriptionId);</span>
+<span class="fc" id="L76">        return Response.ok().entity(prescriptionMapper.toRepresentation(prescription)).build();</span>
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
+    public List&lt;PrescriptionRepresentation&gt; searchByPatientsAMKA(@QueryParam(&quot;amka&quot;) String amka) {
+<span class="fc" id="L83">        System.out.println(&quot;Patient AMKA  RESOURCE SEARCH= &quot; + amka);</span>
+<span class="fc" id="L84">        return prescriptionMapper.toRepresentationList(prescriptionRepository.searchByPatientAMKA(amka));</span>
+    }
+
+    @GET
+    @Path(&quot;/all&quot;)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
+    public List&lt;PrescriptionRepresentation&gt; listAll() {
+<span class="fc" id="L92">        return prescriptionMapper.toRepresentationList(prescriptionRepository.listAll());</span>
+    }
+
+
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Transactional
+    public Response addNewPrescription(PrescriptionRepresentation dto) {
+
+<span class="fc" id="L101">        Prescription prescription = prescriptionMapper.toModel(dto);</span>
+
+        //Δεν θέλω να μπορεί να καταχωρηθεί κάτι που υπάρχει ήδη στην DB
+<span class="fc" id="L104">        List&lt;Prescription&gt; pre = prescriptionRepository.searchById(dto.id);</span>
+<span class="fc" id="L105">        System.out.print(&quot;\n pre = prescriptionRepository.searchById(dto.id) = &quot;+ dto.id + &quot;\n&quot;);</span>
+
+<span class="fc bfc" id="L107" title="All 2 branches covered.">        if(pre.size() == 0 ) {</span>
+
+            /*Τα 2 παρακάτω τα χρειάζομαι για να ελέγξω με την παρακάτω if ότι τα
+             * φάρμακα που έγραψε ο φαρμακοποιός έινια τα ίδια με αυτά που έγραψε
+             * ο γιατρός*/
+<span class="fc" id="L112">            List&lt;QuantityPrescription&gt; qps = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L113" title="All 2 branches covered.">            for (QuantityPrescriptionRepresentation qp_rep : dto.quantityPrescriptions) {</span>
+<span class="fc" id="L114">                QuantityPrescription qp = quantityPrescriptionMapper.toModel(qp_rep);</span>
+<span class="fc" id="L115">                qps.add(qp);</span>
+<span class="fc" id="L116">                quantityPrescriptionRepository.persist(qp);</span>
+<span class="fc" id="L117">                qp.setPrescription(prescription);</span>
+<span class="fc" id="L118">            }</span>
+<span class="fc" id="L119">            List&lt;QuantityExecution&gt; qes = null;</span>
+<span class="fc" id="L120">            System.out.print(&quot;QuantityExecution qe = &quot; + dto.quantityPrescriptions.size() + &quot;\n\n&quot;);</span>
+
+            try {
+<span class="pc bpc" id="L123" title="1 of 2 branches missed.">                for (QuantityExecutionRepresentation qe_rep : dto.prescriptionExecution.quantityExecutions) {</span>
+<span class="fc" id="L124">                    QuantityExecution qe = quantityExecutionMapper.toModel(qe_rep);</span>
+<span class="nc" id="L125">                    qes.add(qe);</span>
+
+                    //quantityExecutionRepository.getEntityManager().merge(qe);
+                    //prescription.getPrescriptionExecution()
+<span class="nc" id="L129">                }</span>
+<span class="fc" id="L130">            } catch (NullPointerException e) {</span>
+                //throw new EopyyException();
+<span class="fc" id="L132">                System.out.print(&quot;Caught NullPointerException&quot;);</span>
+<span class="nc" id="L133">            }</span>
+
+
+            //MONO ο γιατρός θα μπορεί να κάνει POST μία συνταγή και όχι κάποιςο άλλος
+<span class="fc" id="L137">            Doctor doctor = doctorRepository.findById(dto.doctorToPrescription.id);</span>
+<span class="fc" id="L138">            System.out.print(&quot;\n doctor = doctorRepository.findById(dto.doctorToPrescription.id) = &quot; + doctor.getId() + &quot;\n&quot;);</span>
+
+<span class="fc" id="L140">            System.out.print(&quot;\n pre.size() == 0 &amp;&amp; doctor != null = &quot; + pre.size() + &quot;\n&quot;);</span>
+            /*Με το qes == null ελέγχω ότι όταν δημιουργείται μία prescription τότε θα  πρέπει
+             * να έχει το Quantity Execution κενό καθώς δεν γίνεται να είναι και γιατρός και φαρμακοποιός.
+             * Ο γιατρός ανοίγει την συνταγή και ο φαρμακοποιός εκτελέι αυτή*/
+<span class="pc bpc" id="L144" title="1 of 2 branches missed.">            if(doctor != null) { //το θέλω απ έξω γιατί βγάζει θέμα με το UPDATE</span>
+<span class="fc" id="L145">                System.out.print(&quot;\n qes == null = &quot; + qes + &quot;\n&quot;);</span>
+                try {
+<span class="pc bpc" id="L147" title="1 of 2 branches missed.">                    if (qes == null) {</span>
+    //                   prescriptionRepository.getEntityManager().clear();
+    //                   prescriptionRepository.getEntityManager().merge(prescription);
+
+<span class="fc" id="L151">                        prescriptionRepository.persist(prescription);</span>
+    //                   prescriptionRepository.getEntityManager().persist(prescription);
+
+<span class="fc" id="L154">                        System.out.print(&quot;\nprescriptionRepository.isPersistent(prescription); = &quot; + prescriptionRepository.isPersistent(prescription));</span>
+<span class="fc" id="L155">                        System.out.print(&quot;\nprescriptionRepository.getEntityManager().merge(prescription) = &quot; + prescription.getId());</span>
+                    }
+<span class="nc" id="L157">                } catch (NullPointerException e) {</span>
+<span class="nc" id="L158">                    return Response.status(404).build();</span>
+<span class="fc" id="L159">                }</span>
+            }
+
+<span class="fc" id="L162">       }else {</span>
+<span class="fc" id="L163">           return Response.status(404).build();</span>
+       }
+
+
+<span class="fc" id="L167">        URI locationUri = uriInfo.getAbsolutePathBuilder()</span>
+<span class="fc" id="L168">                .path(Integer.toString(prescription.getId()))</span>
+<span class="fc" id="L169">                .build();</span>
+
+<span class="fc" id="L171">        PrescriptionRepresentation savedDoc = prescriptionMapper.toRepresentation(prescription);</span>
+<span class="fc" id="L172">        return Response.created(locationUri).entity(savedDoc).build();</span>
+
+    }
+
+    @PUT
+    @Path(&quot;/{id}&quot;)
+    @Transactional
+    public Response updatePrescription(@PathParam(&quot;id&quot;) Integer id, PrescriptionRepresentation pre_rep) {
+<span class="fc" id="L180">        Double summaryCost = 0.0;</span>
+
+<span class="fc" id="L182">        System.out.println(&quot;SUMMURY COST = &quot;+ summaryCost);</span>
+<span class="pc bpc" id="L183" title="1 of 2 branches missed.">        if (! id.equals(pre_rep.id)) {</span>
+<span class="nc" id="L184">            throw new RuntimeException();</span>
+        }
+
+<span class="fc" id="L187">        Prescription prescription = prescriptionMapper.toModel(pre_rep);</span>
+
+        /*Φτιάχνα αυτό και το παρακάτω LIst με σκοπό να μπορέσψ παρακάτω να τα δώσω σαν ορίσματα
+        * ώστε να εξάγω το SummaryCost και το FLAG για το αν μία συνταγή είναι PENDING, EXESUTED κλπ*/
+<span class="fc" id="L191">        List&lt;QuantityPrescription&gt; qps = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L192" title="All 2 branches covered.">        for(QuantityPrescriptionRepresentation qp_rep : pre_rep.quantityPrescriptions) {</span>
+<span class="fc" id="L193">            QuantityPrescription qp = quantityPrescriptionMapper.toModel(qp_rep);</span>
+<span class="fc" id="L194">            qps.add(qp);</span>
+<span class="fc" id="L195">            System.out.println(&quot;quantityPrescriptionMapper.toModel(qp_rep) = &quot;+ qp.getId());</span>
+
+<span class="fc" id="L197">        }</span>
+
+        /*Ενα από τα ΜΕΓΑΛΥΤΕΡΑ ΠΡΟΒΛΗΜΑΤΑ ήταν να μπορέσω έχωντας μία prescription στην οποία δεν έχει
+        * πραγματοποιηθεί ακόμη Execution να μπορέσω να εντάξω την EXECUTION και ταυτόχρονα να εμφανίζει
+        * και τα quantity Execution
+        * Για να μπορέσει να γίενι αυτό θα πρέπει να είναι το QE = cascade.ALL καιώς και το PE cascadeALL
+        * επιπρόσθετα για να δουλέψει ΔΕΝ πρέπει να φτιάξω το PE και μετά να βάλω μέσα του το SET&lt;QE&gt; διό΄τι
+        * είναι SET ακι από την πλευρά του QE δεν θα δημιουργηθούν με αυτό τον τρόπο όλες οι QE που θα δείχνουν
+        * προς το ίδιο PE.
+        * ΠΡΕΠΕΙ να ενεργησω όποως παρακάτω. Δηλαδή να φτιάξω ή να εισάγω το PE.
+        * Να το κάνω Persist ώστε να υπάρχει στην DB
+        * Μετά να φτιάξω μια for που σε κάθε μία επανάληψη θα κάνει σε κάθε QE.set(PE) και με αυτόν τον τρόπο
+        * δημιουργούναι τα απαιτούμενα QE για το PE.
+        * ΤΕΛΟΣ εισάγω το PE μέσα στο PRESCRIPTION και κάνω merge(prescription)*/
+<span class="fc" id="L211">        PrescriptionExecution pe = prescriptionExecutionMapper.toModel(pre_rep.prescriptionExecution);</span>
+<span class="fc" id="L212">        prescriptionExecutionRepository.persist(pe);</span>
+
+        /*Το χειάζομαι και για το SummaryCost kai γαι το FLAG*/
+<span class="fc" id="L215">        List&lt;QuantityExecution&gt; qes = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L216" title="All 2 branches covered.">        for(QuantityExecutionRepresentation qe_rep : pre_rep.prescriptionExecution.quantityExecutions){</span>
+<span class="fc" id="L217">            QuantityExecution qe = quantityExecutionMapper.toModel(qe_rep);</span>
+<span class="fc" id="L218">            qes.add(qe); //το θέλω γαι το summary COST</span>
+
+<span class="fc" id="L220">            qe.setPrescriptionExecution(pe);</span>
+<span class="fc" id="L221">            System.out.println(&quot;quantityExecutionMapper.toModel(qp_rep) = &quot;+ qe.getId());</span>
+<span class="fc" id="L222">            quantityExecutionRepository.persist(qe);</span>
+
+<span class="fc" id="L224">       }</span>
+
+        //Κάνω το Quantity Execution SET και μετά το εισάγω στο Prescription Execution αλλά δεν δουλέυει
+//        prescriptionExecutionRepository.persist(pe);
+//        System.out.println(&quot;PrescriptionExecution ID = &quot;+ pe.getId());
+//        Set&lt;QuantityExecution&gt; qeSet = new HashSet&lt;QuantityExecution&gt;(qes);
+//        qeSet.addAll(qes);
+//        pe.setQuantityExecutions(qeSet);
+
+
+<span class="fc" id="L234">        prescription.setPrescriptionExecution(pe);</span>
+
+
+        //ΥΠολογισμός του Summary Cost
+<span class="fc" id="L238">        summaryCost = prescription.getPrescriptionExecution().getSummaryCost(qes);</span>
+<span class="fc" id="L239">        prescription.getPrescriptionExecution().setSummaryCost(summaryCost);</span>
+<span class="fc" id="L240">        System.out.println(&quot;SUMMURY COST = &quot;+ summaryCost);</span>
+
+        //Υπολογισμός του FLAG EXECUTED - PARTIALLY
+        try {
+           //prescription.getPrescriptionExecution().setExecutionFlag(qes, qps);
+<span class="fc" id="L245">           prescription.setExecutionFlag2();</span>
+<span class="fc" id="L246">            System.out.println(&quot;EXECUTION FLAG = &quot;+prescription.getPrescriptionExecution().getExecutionFlag());</span>
+
+<span class="nc" id="L248">        } catch (DomainException e) {</span>
+<span class="nc" id="L249">            throw new RuntimeException(e);</span>
+<span class="fc" id="L250">        }</span>
+
+
+        /*Θέλω να ελέγξω ότι δεν υπάρχει περίπτωση να γίνει εκτέλεση και τα φάρμακα που έδωσε ο γιατρός
+        * να μην είαυτά που πρέπει. */
+        try{
+<span class="pc bpc" id="L256" title="2 of 4 branches missed.">            if ( prescription.checkPharmacistGiveCorrectDrugs(qps, qes) &amp;&amp; prescription.getPrescriptionExecution().getExecutionFlag() != executionPrescriptionFlag.CANCELED) {</span>
+<span class="fc" id="L257">                prescriptionRepository.getEntityManager().merge(prescription);</span>
+
+
+            }
+<span class="nc" id="L261">        } catch (NullPointerException e) {</span>
+<span class="nc" id="L262">            return Response.status(404).build();</span>
+<span class="fc" id="L263">        }</span>
+
+        //ήταν μόνο του από έξω χωρίς δικλείδες ασφάλειας
+        //prescriptionRepository.getEntityManager().merge(prescription);
+
+<span class="fc" id="L268">        return Response.noContent().build();</span>
+    }
+
+    /*Για την ακρίβεια αυτή η DELETE δεν διαγράφει αλλά ακυρώνει μια συνταγή ΜΟΝΟ αν δεν είναι EXECUTED*/
+    @DELETE
+    @Path(&quot;{id:[0-9]+}&quot;)
+    @Transactional
+    public Response cancelPrescription(@PathParam(&quot;id&quot;) Integer id){
+<span class="fc" id="L276">        Prescription prescription = prescriptionRepository.findById(id);</span>
+
+<span class="pc bpc" id="L278" title="1 of 2 branches missed.">        if (prescription == null){</span>
+<span class="nc" id="L279">            return Response.status(404).build();</span>
+<span class="pc bpc" id="L280" title="1 of 2 branches missed.">        } else if(prescription.getPrescriptionExecution()==null){</span>
+<span class="fc" id="L281">            PrescriptionExecution pe = new PrescriptionExecution();</span>
+<span class="fc" id="L282">            pe.setExecutionFlag(executionPrescriptionFlag.CANCELED);</span>
+<span class="fc" id="L283">            pe.setExecutionDate(LocalDate.now().toString());</span>
+<span class="fc" id="L284">            prescription.setPrescriptionExecution(pe);</span>
+
+<span class="fc" id="L286">            prescriptionRepository.getEntityManager().merge(prescription);</span>
+<span class="fc" id="L287">        } else {</span>
+<span class="nc" id="L288">            return Response.status(401).build();</span>
+        }
+
+
+
+<span class="fc" id="L293">        return Response.noContent().build();</span>
+    }
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

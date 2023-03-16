@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BustedDoctorsResource.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">quarkus-application</a> &gt; <a href="index.source.html" class="el_package">com.example.app.resource</a> &gt; <span class="el_source">BustedDoctorsResource.java</span></div><h1>BustedDoctorsResource.java</h1><pre class="source lang-java linenums">package com.example.app.resource;
+
+import com.example.app.domain.Prescription;
+import com.example.app.domain.QuantityPrescription;
+import com.example.app.persistence.PrescriptionRepository;
+import com.example.app.persistence.PrescriptionRepositoryBusted;
+import com.example.app.persistence.QuantityPrescriptionRepository;
+import com.example.app.representation.*;
+
+import javax.enterprise.context.RequestScoped;
+import javax.inject.Inject;
+import javax.transaction.Transactional;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.UriInfo;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.example.app.resource.Uri.BUSTEDDOCTORS;
+
+
+
+@Path(BUSTEDDOCTORS)
+@RequestScoped
+<span class="fc" id="L26">public class BustedDoctorsResource {</span>
+
+    @Context
+    UriInfo uriInfo;
+
+    @Inject
+    QuantityPrescriptionRepository quantityPrescriptionRepository;
+
+    @Inject
+    QuantityPrescriptionMapper quantityPrescriptionMapper;
+
+    @Inject
+    PrescriptionMapperBusted prescriptionMapperBusted;
+
+    @Inject
+    PrescriptionRepositoryBusted prescriptionRepositoryBusted;
+
+    @Inject
+    PrescriptionMapper prescriptionMapper;
+
+    @Inject
+    PrescriptionRepository prescriptionRepository;
+
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
+    public  List&lt;PrescriptionRepresentation&gt; list() {
+
+<span class="fc" id="L55">        List&lt;Prescription&gt; prescriptions = new ArrayList&lt;Prescription&gt;();</span>
+<span class="fc" id="L56">        List&lt;Prescription&gt; prescriptions2 = new ArrayList&lt;Prescription&gt;();</span>
+
+
+<span class="fc" id="L59">        System.out.println(&quot;quantityPrescriptionRepository.listAll()).size() = &quot;+ quantityPrescriptionRepository.listAll().size());</span>
+<span class="fc" id="L60">        int i=0;</span>
+        //for (int i=0; i&lt;quantityPrescriptionMapper.toRepresentationList(quantityPrescriptionRepository.listAll()).size(); i++){
+<span class="fc bfc" id="L62" title="All 2 branches covered.">        for(QuantityPrescriptionRepresentation qp_rep : quantityPrescriptionMapper.toRepresentationList(quantityPrescriptionRepository.listAll())) {</span>
+<span class="fc" id="L63">            System.out.println(&quot;quantityPrescriptionRepository.listAll()).size() = &quot; + i);</span>
+            //QuantityPrescriptionRepresentation qp_rep = (quantityPrescriptionMapper.toRepresentationList(quantityPrescriptionRepository.listAll()).get(i));
+
+<span class="fc" id="L66">            QuantityPrescription qp = (quantityPrescriptionMapper.toModel(qp_rep));</span>
+<span class="fc" id="L67">            System.out.println(&quot;prescriptionRepositoryBusted.searchPrescriptionThroughQP 2&quot;);</span>
+
+
+<span class="fc" id="L70">            System.out.println(&quot;prescriptionRepositoryBusted.searchPrescriptionThroughQP 3 &quot;);</span>
+<span class="fc" id="L71">            Integer pre = prescriptionRepository.searchPrescriptionInQP(qp.getId()).getId();</span>
+<span class="fc" id="L72">            System.out.println(&quot;prescriptionRepositoryBusted.searchPrescriptionThroughQP 4 &quot; + pre);</span>
+<span class="fc" id="L73">            prescriptions.add(prescriptionRepository.findById(pre));</span>
+<span class="fc" id="L74">        }</span>
+
+
+<span class="fc" id="L77">            Integer pre_check = 0;</span>
+<span class="fc bfc" id="L78" title="All 2 branches covered.">            for(Prescription p : prescriptions){</span>
+<span class="fc" id="L79">                Integer quantity = 0; //Κρατάει την ποσότητα των φαρμάκων του QP για κάθε ένα για να τα προσθέτει</span>
+<span class="fc bfc" id="L80" title="All 2 branches covered.">                for(QuantityPrescription q_p : p.getQuantityPrescriptions()){</span>
+<span class="fc" id="L81">                    quantity = q_p.getQuantityPrescription();</span>
+
+<span class="fc bfc" id="L83" title="All 2 branches covered.">                    for(Prescription p2: prescriptions) {</span>
+<span class="pc bpc" id="L84" title="1 of 6 branches missed.">                        if (p2.getDoctorAMKA() == p.getDoctorAMKA() &amp;&amp; p2.getPatientAMKA() == p.getPatientAMKA() &amp;&amp; p.getId() != p2.getId()) {</span>
+<span class="fc bfc" id="L85" title="All 2 branches covered.">                            for (QuantityPrescription q_p2 : p2.getQuantityPrescriptions()) {</span>
+<span class="pc bpc" id="L86" title="1 of 4 branches missed.">                                if (q_p.getDrug().getId() == q_p2.getDrug().getId() &amp;&amp; q_p.getId() != q_p2.getId()) {</span>
+<span class="fc" id="L87">                                    quantity = quantity + q_p2.getQuantityPrescription();</span>
+                                }
+<span class="fc" id="L89">                            }</span>
+                        }
+<span class="fc" id="L91">                    }</span>
+
+<span class="fc bfc" id="L93" title="All 2 branches covered.">                    if(!q_p.isInsideLimit2(quantity)){</span>
+<span class="fc" id="L94">                        System.out.println(&quot;prescriptionRepositoryBusted.searchPrescriptionThroughQP 5 &quot; );</span>
+<span class="fc" id="L95">                        Integer pre2 = prescriptionRepository.searchPrescriptionInQP(q_p.getId()).getId();</span>
+
+<span class="fc" id="L97">                        System.out.println(&quot;prescriptionRepositoryBusted.searchPrescriptionThroughQP 6 &quot; + p);</span>
+<span class="fc bfc" id="L98" title="All 2 branches covered.">                        if(pre2 != pre_check){</span>
+<span class="fc" id="L99">                            prescriptions2.add(prescriptionRepository.findById(pre2));</span>
+                        }
+<span class="fc" id="L101">                        pre_check = pre2;</span>
+                    }
+<span class="fc" id="L103">                }</span>
+<span class="fc" id="L104">            }</span>
+
+<span class="fc" id="L106">        return prescriptionMapper.toRepresentationList(prescriptions2);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>
